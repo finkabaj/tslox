@@ -1,3 +1,5 @@
-function main() {
+const bootsrap = () => {
+  console.log("hello world");
+};
 
-}
+bootsrap();

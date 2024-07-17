@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node -r tsconfig-paths/register dist/main.js",
+    "build": "tsc -p . --outDir dist"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,8 @@
     "url": "https://github.com/finkabaj/tslass/issues"
   },
   "homepage": "https://github.com/finkabaj/tslass#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "tsconfig-paths": "4.2.0"
+  }
 }
