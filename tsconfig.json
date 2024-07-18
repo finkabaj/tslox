@@ -20,7 +20,8 @@
     "outDir": "./dist",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.scep.ts"]
