@@ -1,6 +1,6 @@
 #!/usr/bin/env -S ts-node --files
 
-import { exit, stdin, stdout, stderr } from 'node:process';
+import { exit, stdin, stdout, stderr, argv } from 'node:process';
 import { createInterface } from 'node:readline';
 import { EX } from '@/types/sysexits';
 import { readFileSync } from 'node:fs';
@@ -11,10 +11,9 @@ import { Logger } from './error';
 const logger = new Logger();
 
 const main = () => {
-  const argv = process.argv;
   if (argv.length > 3) {
-    process.stdout.write('Usage: tslass [script]\n');
-    process.exit(EX.USAGE);
+    stdout.write('Usage: tslass [script]\n');
+    exit(EX.USAGE);
   } else if (argv.length == 3) {
     runFile(argv[2]);
   } else {
