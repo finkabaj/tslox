@@ -14,7 +14,7 @@ const main = () => {
   if (argv.length > 3) {
     stdout.write('Usage: tslass [script]\n');
     exit(EX.USAGE);
-  } else if (argv.length == 3) {
+  } else if (argv.length === 3) {
     runFile(argv[2]);
   } else {
     repl();
@@ -49,8 +49,7 @@ function repl() {
   rl.on('line', (ln) => {
     run(ln);
     logger.hadError = false;
-    stdout.write('\n> ');
-    //stdout.write(`${ln}\n> `);
+    stdout.write('> ');
   });
 
   rl.on('SIGINT', () => {
