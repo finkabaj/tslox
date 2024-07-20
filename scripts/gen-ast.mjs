@@ -1,17 +1,29 @@
 #!/usr/bin/env node
 
-import { argv, exit, stdout, stderr } from 'node:process';
-import { writeFileSync } from 'node:fs';
+import { argv, exit, stdout, stderr, stdin } from 'node:process';
+import { writeFileSync, existsSync } from 'node:fs';
 
 if (argv.length !== 3) {
-  stdout.write('Usage: gen-ast <output directory>\n');
+  stderr.write('Usage: gen-ast <output directory>\n');
   exit(64);
 }
 
 const outDir = argv[2];
 const name = 'Expr';
+const path = `${outDir}/${name[0].toLowerCase() + name.slice(1)}.ts`;
+
+if (existsSync(path)) {
+  const ans = await question(
+    'This will overwrite original file. Are you sure? y(es) '
+  );
+  if (!ans.match(/^y(es)?$/i)) {
+    exit(0);
+  }
+}
+
 const token = 'IToken';
 const literal = 'Literal';
+
 let content = '';
 
 const asArray = [
@@ -36,12 +48,11 @@ for (const as of asArray) {
 content += '}\n';
 
 try {
-  writeFileSync(
-    `${outDir}/${name[0].toLowerCase() + name.slice(1)}.ts`,
-    content
-  );
+  writeFileSync(path, content);
+  stdout.write(`succesfully created at path: ${path}\n`);
+  exit(0);
 } catch (err) {
-  stderr.write(`Error: ${err.message}\n`);
+  stderr.write(`${err.message}\n`);
   exit(66);
 }
 
@@ -75,4 +86,13 @@ function writeConstructor(fields) {
   str += '\t\t}\n';
 
   return str;
+}
+
+function question(query) {
+  stdout.write(query);
+  return new Promise((resolve) => {
+    stdin.once('data', (data) => {
+      resolve(data.toString().trim());
+    });
+  });
 }
