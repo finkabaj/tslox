@@ -22,7 +22,7 @@ if (existsSync(path)) {
 }
 
 const token = 'IToken';
-const literal = 'Literal';
+const literal = 'LiteralVal';
 
 let content = '';
 
@@ -35,17 +35,24 @@ const asArray = [
 
 content += `import { ${token}, ${literal} } from '@/types/token';\n\n`;
 
+content += writeVisitor(name, asArray) + '\n';
+
+content += `export interface ${name}Visitor<R> {\n`;
+content += `\tvisit: ${name}VisitorMap<R>;\n`;
+content += '}\n\n';
+
 content += `export abstract class ${name} {\n`;
+content += `\tabstract accept<R>(visitor: ${name}Visitor<R>): R;\n`;
+content += '}\n\n';
+
 for (const as of asArray) {
   const className = as.split(':')[0].trim();
   const fields = as.split(':')[1].trim();
-  content += `\tstatic ${className} = class {\n`;
-  content += `${writeFields(fields.split(','))}\n`;
-  content += `${writeConstructor(fields.split(','))}`;
-  content += '\t};\n\n';
+  content += `export class ${className} extends ${name} {\n`;
+  content += writeConstructor(fields.split(',')) + '\n';
+  content += writeAccept(name, className);
+  content += '}\n\n';
 }
-
-content += '}\n';
 
 try {
   writeFileSync(path, content);
@@ -56,34 +63,37 @@ try {
   exit(66);
 }
 
-function writeFields(fields) {
-  let str = '';
-  for (const field of fields) {
-    const type = field.split(' ')[0];
-    const name = field.split(' ')[1];
-    str += `\t\treadonly ${name}: ${type};\n`;
+function writeVisitor(name, asArray) {
+  let str = `export type ${name}VisitorMap<R> = {\n`;
+  for (const as of asArray) {
+    const className = as.split(':')[0].trim();
+    str += `\tvisit${className}${name}: (expr: ${className}) => R;\n`;
   }
+
+  str += '};\n';
 
   return str;
 }
 
 function writeConstructor(fields) {
-  let str = '\t\tconstructor(';
-  let i = 0;
+  let str = '\tconstructor(\n';
   for (const field of fields) {
     const type = field.split(' ')[0];
     const name = field.split(' ')[1];
-    str += ++i !== fields.length ? `${name}: ${type}, ` : `${name}: ${type}`;
+    str += `\t\tpublic readonly ${name}: ${type},\n`;
   }
 
-  str += ') {\n';
+  str += '\t) {\n';
+  str += '\t\tsuper();\n';
+  str += '\t}\n';
 
-  for (const field of fields) {
-    const name = field.split(' ')[1];
-    str += `\t\t\tthis.${name} = ${name};\n`;
-  }
+  return str;
+}
 
-  str += '\t\t}\n';
+function writeAccept(name, className) {
+  let str = `\taccept<R>(visitor: ${name}Visitor<R>): R {\n`;
+  str += `\t\t return visitor.visit.visit${className}${name}(this);\n`;
+  str += '\t}\n';
 
   return str;
 }
