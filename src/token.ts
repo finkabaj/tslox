@@ -1,9 +1,9 @@
-import { IToken, Literal, TokenType } from '@/types/token';
+import { IToken, LiteralVal, TokenType } from '@/types/token';
 
 export class Token implements IToken {
   readonly tokenType: TokenType;
   readonly lexeme: string;
-  readonly literal: Literal;
+  readonly literal: LiteralVal;
   readonly line: number;
 
   constructor(token: Omit<IToken, 'toString'>) {

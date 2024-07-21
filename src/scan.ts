@@ -1,4 +1,4 @@
-import { IToken, Literal, TokenType } from '@/types/token';
+import { IToken, LiteralVal, TokenType } from '@/types/token';
 import { Token } from '@/token';
 import { Logger } from '@/logger';
 import { isCharAlpha, isCharAlphaNumeric, isCharNumber } from '@/utils';
@@ -180,8 +180,8 @@ export class Scanner {
   }
 
   private addToken(type: TokenType): void;
-  private addToken(type: TokenType, literal: Literal): void;
-  private addToken(type: TokenType, literal?: Literal): void {
+  private addToken(type: TokenType, literal: LiteralVal): void;
+  private addToken(type: TokenType, literal?: LiteralVal): void {
     if (literal === null) {
       literal = {};
     }
