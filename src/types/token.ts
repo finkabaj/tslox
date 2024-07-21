@@ -47,12 +47,12 @@ export enum TokenType {
   EOF,
 }
 
-export type Literal = string | number | object | null;
+export type LiteralVal = string | number | object | null;
 
 export interface IToken {
   tokenType: TokenType;
   lexeme: string;
-  literal: Literal;
+  literal: LiteralVal;
   line: number;
   toString(): string;
 }

@@ -1,41 +1,63 @@
-import { IToken, Literal } from '@/types/token';
+import { IToken, LiteralVal } from '@/types/token';
+
+export type ExprVisitorMap<R> = {
+  visitBinaryExpr: (expr: Binary) => R;
+  visitGroupingExpr: (expr: Grouping) => R;
+  visitLiteralExpr: (expr: Literal) => R;
+  visitUnaryExpr: (expr: Unary) => R;
+};
+
+export interface ExprVisitor<R> {
+  visit: ExprVisitorMap<R>;
+}
 
 export abstract class Expr {
-  static Binary = class {
-    readonly left: Expr;
-    readonly op: IToken;
-    readonly right: Expr;
+  abstract accept<R>(visitor: ExprVisitor<R>): R;
+}
 
-    constructor(left: Expr, op: IToken, right: Expr) {
-      this.left = left;
-      this.op = op;
-      this.right = right;
-    }
-  };
+export class Binary extends Expr {
+  constructor(
+    public readonly left: Expr,
+    public readonly op: IToken,
+    public readonly right: Expr
+  ) {
+    super();
+  }
 
-  static Grouping = class {
-    readonly expr: Expr;
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitBinaryExpr(this);
+  }
+}
 
-    constructor(expr: Expr) {
-      this.expr = expr;
-    }
-  };
+export class Grouping extends Expr {
+  constructor(public readonly expr: Expr) {
+    super();
+  }
 
-  static Literal = class {
-    readonly val: Literal;
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitGroupingExpr(this);
+  }
+}
 
-    constructor(val: Literal) {
-      this.val = val;
-    }
-  };
+export class Literal extends Expr {
+  constructor(public readonly val: LiteralVal) {
+    super();
+  }
 
-  static Unary = class {
-    readonly op: IToken;
-    readonly right: Expr;
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitLiteralExpr(this);
+  }
+}
 
-    constructor(op: IToken, right: Expr) {
-      this.op = op;
-      this.right = right;
-    }
-  };
+export class Unary extends Expr {
+  constructor(
+    public readonly op: IToken,
+    public readonly right: Expr
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitUnaryExpr(this);
+  }
 }

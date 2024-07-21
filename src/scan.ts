@@ -1,6 +1,6 @@
 import { IToken, Literal, TokenType } from '@/types/token';
 import { Token } from '@/token';
-import { Logger } from '@/error';
+import { Logger } from '@/logger';
 import { isCharAlpha, isCharAlphaNumeric, isCharNumber } from '@/utils';
 
 export class Scanner {

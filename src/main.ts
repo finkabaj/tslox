@@ -6,7 +6,7 @@ import { EX } from '@/types/sysexits';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Scanner } from '@/scan';
-import { Logger } from './error';
+import { Logger } from '@/logger';
 
 const logger = new Logger();
 
