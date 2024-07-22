@@ -12,7 +12,7 @@ const logger = new Logger();
 
 const main = () => {
   if (argv.length > 3) {
-    stdout.write('Usage: tslass [script]\n');
+    stdout.write('Usage: tslox [script]\n');
     exit(EX.USAGE);
   } else if (argv.length === 3) {
     runFile(argv[2]);

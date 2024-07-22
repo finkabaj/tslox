@@ -1,12 +1,6 @@
-# tslass
+# tslox
 
-TSLass is an interpreter for the Lass programming language, implemented in TypeScript.
-
-## Installation
-
-```bash
-npm install -g tslass
-```
+TSLox is an interpreter for the lox programming language, implemented in TypeScript.
 
 ## Usage
 
@@ -15,15 +9,15 @@ npm install -g tslass
 To start the interactive REPL:
 
 ```bash
-tslass
+tslox
 ```
 
-### Executing Lass Files
+### Executing lox Files
 
-To run a Lass source file:
+To run a lox source file:
 
 ```bash
-tslass path/to/your/script.lass
+tslox path/to/your/script.lox
 ```
 
 ## Acknowledgments

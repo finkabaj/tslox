@@ -1,5 +1,5 @@
 {
-  "name": "tslass",
+  "name": "tslox",
   "version": "1.0.0",
   "main": "main.ts",
   "scripts": {
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/finkabaj/tslass.git"
+    "url": "git+https://github.com/finkabaj/tslox.git"
   },
   "author": "finkabaj",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/finkabaj/tslass/issues"
+    "url": "https://github.com/finkabaj/tslox/issues"
   },
-  "homepage": "https://github.com/finkabaj/tslass#readme",
+  "homepage": "https://github.com/finkabaj/tslox#readme",
   "description": "",
   "devDependencies": {
     "@types/node": "^20.14.11",
