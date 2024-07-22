@@ -1,12 +1,12 @@
 import { IToken, LiteralVal, TokenType } from '@/types/token';
 import { Token } from '@/token';
-import { Logger } from '@/logger';
 import { isCharAlpha, isCharAlphaNumeric, isCharNumber } from '@/utils';
+import { ILogger } from '@/types/logger';
 
 export class Scanner {
   private readonly source: string;
   private readonly tokens: IToken[] = [];
-  private readonly logger: Logger;
+  private readonly logger: ILogger;
   private start: number = 0;
   private current: number = 0;
   private line: number = 1;
@@ -28,7 +28,7 @@ export class Scanner {
     .set('var', TokenType.VAR)
     .set('while', TokenType.WHILE);
 
-  constructor(logger: Logger, source: string) {
+  constructor(logger: ILogger, source: string) {
     this.source = source;
     this.logger = logger;
   }
@@ -41,7 +41,7 @@ export class Scanner {
 
     this.tokens.push(
       new Token({
-        tokenType: TokenType.EOF,
+        type: TokenType.EOF,
         lexeme: '',
         literal: {},
         line: this.line,
@@ -188,7 +188,7 @@ export class Scanner {
     const text = this.source.substring(this.start, this.current);
     this.tokens.push(
       new Token({
-        tokenType: type,
+        type: type,
         lexeme: text,
         literal: literal!,
         line: this.line,
@@ -232,7 +232,7 @@ export class Scanner {
 
     this.addToken(
       TokenType.NUMBER,
-      Number(this.source.substring(this.start, this.current - 1))
+      Number(this.source.substring(this.start, this.current))
     );
   }
 

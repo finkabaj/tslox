@@ -7,6 +7,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Scanner } from '@/scan';
 import { Logger } from '@/logger';
+import { Parser } from '@/parser';
+import { AstPrinter } from './ast-printer';
 
 const logger = new Logger();
 
@@ -69,10 +71,14 @@ function repl() {
 const run = (source: string) => {
   const scanner = new Scanner(logger, source);
   const tokens = scanner.scanTokens();
+  const parser = new Parser(logger, tokens);
+  const expr = parser.parse();
 
-  for (const token of tokens) {
-    stdout.write(`${token}\n`);
+  if (logger.hadError) {
+    return;
   }
+
+  stdout.write(new AstPrinter().print(expr!) + '\n');
 };
 
 main();
