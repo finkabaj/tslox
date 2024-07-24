@@ -1,3 +1,4 @@
+import { RuntimeError } from '@/logger';
 import { IToken } from './token';
 
 interface ErrorOveload {
@@ -8,4 +9,5 @@ interface ErrorOveload {
 export interface ILogger {
   hadError: boolean;
   error: ErrorOveload;
+  runtimeError: (err: RuntimeError) => void;
 }

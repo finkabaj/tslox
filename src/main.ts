@@ -9,8 +9,10 @@ import { Scanner } from '@/scan';
 import { Logger } from '@/logger';
 import { Parser } from '@/parser';
 import { AstPrinter } from './ast-printer';
+import { Interpreter } from './interpreter';
 
 const logger = new Logger();
+const interpreter = new Interpreter(logger);
 
 const main = () => {
   if (argv.length > 3) {
@@ -30,6 +32,9 @@ const runFile = (path: string) => {
 
     if (logger.hadError) {
       exit(EX.DATAERR);
+    }
+    if (logger.hadRuntimeError) {
+      exit(EX.SOFTWARE);
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -78,7 +83,7 @@ const run = (source: string) => {
     return;
   }
 
-  stdout.write(new AstPrinter().print(expr!) + '\n');
+  interpreter.interpret(expr!);
 };
 
 main();

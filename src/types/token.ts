@@ -47,7 +47,7 @@ export enum TokenType {
   EOF,
 }
 
-export type LiteralVal = string | number | boolean | object | null;
+export type LiteralVal = string | number | boolean | null;
 
 export interface IToken {
   type: TokenType;

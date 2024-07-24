@@ -43,7 +43,7 @@ export class Scanner {
       new Token({
         type: TokenType.EOF,
         lexeme: '',
-        literal: {},
+        literal: null,
         line: this.line,
       })
     );
@@ -182,15 +182,15 @@ export class Scanner {
   private addToken(type: TokenType): void;
   private addToken(type: TokenType, literal: LiteralVal): void;
   private addToken(type: TokenType, literal?: LiteralVal): void {
-    if (literal === null) {
-      literal = {};
+    if (literal === undefined) {
+      literal = null;
     }
     const text = this.source.substring(this.start, this.current);
     this.tokens.push(
       new Token({
         type: type,
         lexeme: text,
-        literal: literal!,
+        literal: literal,
         line: this.line,
       })
     );

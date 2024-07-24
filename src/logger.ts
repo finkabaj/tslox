@@ -2,10 +2,25 @@ import { stderr } from 'node:process';
 import { ILogger } from '@/types/logger';
 import { IToken, TokenType } from '@/types/token';
 
+export class RuntimeError extends Error {
+  readonly token: IToken;
+
+  constructor(token: IToken, message: string) {
+    super(message);
+    this.token = token;
+  }
+}
+
 export class Logger implements ILogger {
   public hadError: boolean = false;
+  public hadRuntimeError: boolean = false;
 
   constructor() {}
+
+  public runtimeError(err: RuntimeError): void {
+    stderr.write(`${err.message}\n[line${err.token.line}]\n`);
+    this.hadRuntimeError = true;
+  }
 
   public error(line: number, message: string): void;
   public error(token: IToken, message: string): void;
