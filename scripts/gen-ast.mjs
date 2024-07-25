@@ -16,18 +16,23 @@ const tokenImport = `import { ${token}, ${literal}} from '@/types/token';`;
 
 const exprName = 'Expr';
 const exprs = [
-  `Binary : ${exprName} left,${token} op,${exprName} right`,
-  `Grouping : ${exprName} expr`,
-  `Literal : ${literal} val`,
-  `Unary : ${token} op,${exprName} right`,
+  `Binary: ${exprName} left,${token} op,${exprName} right`,
+  `Grouping: ${exprName} expr`,
+  `Literal: ${literal} val`,
+  `Unary: ${token} op,${exprName} right`,
+  `Variable: ${token} name`,
 ];
 const exprImports = `import { ${exprName} } from '@/${exprName[0].toLowerCase() + exprName.slice(1)}';`;
 
 const stmtName = 'Stmt';
-const stmts = [`Expression: ${exprName} expr`, `Print: ${exprName} expr`];
+const stmts = [
+  `Expression: ${exprName} expr`,
+  `Print: ${exprName} expr`,
+  `Var: ${token} name,${exprName}|null initializer`,
+];
 
 await defineAst(outDir, exprName, exprs, [tokenImport]);
-await defineAst(outDir, stmtName, stmts, [exprImports]);
+await defineAst(outDir, stmtName, stmts, [exprImports, tokenImport]);
 
 exit(0);
 

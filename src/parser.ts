@@ -1,7 +1,7 @@
 import { IToken, TokenType } from '@/types/token';
-import { Binary, Expr, Unary, Literal, Grouping } from '@/expr';
+import { Binary, Expr, Unary, Literal, Grouping, Variable } from '@/expr';
 import { ILogger } from '@/types/logger';
-import { Expression, Print, Stmt } from '@/stmt';
+import { Expression, Print, Stmt, Var } from '@/stmt';
 
 class ParseError extends Error {}
 
@@ -18,13 +18,25 @@ export class Parser {
   public parse(): Stmt[] {
     const statements: Stmt[] = [];
     while (!this.isAtEnd()) {
-      statements.push(this.statement());
+      const stmt = this.declaration();
+      if (stmt) statements.push(stmt);
     }
     return statements;
   }
 
   private expression(): Expr {
     return this.equality();
+  }
+
+  private declaration(): Stmt | null {
+    try {
+      if (this.match(TokenType.VAR)) return this.varDeclaration();
+
+      return this.statement();
+    } catch (err) {
+      this.synchronize();
+      return null;
+    }
   }
 
   private statement(): Stmt {
@@ -37,6 +49,16 @@ export class Parser {
     const val = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(val);
+  }
+
+  private varDeclaration(): Stmt {
+    const name = this.consume(TokenType.IDENTIFIER, 'Expect variable name.');
+
+    let initializer: Expr | null = null;
+    if (this.match(TokenType.EQUAL)) initializer = this.expression();
+
+    this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+    return new Var(name, initializer);
   }
 
   private expressionStatement(): Stmt {
@@ -117,6 +139,10 @@ export class Parser {
 
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
+
+    if (this.match(TokenType.IDENTIFIER)) {
+      return new Variable(this.previous());
     }
 
     if (this.match(TokenType.LEFT_PAREN)) {
