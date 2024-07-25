@@ -9,58 +9,71 @@ if (argv.length !== 3) {
 }
 
 const outDir = argv[2];
-const name = 'Expr';
-const path = `${outDir}/${name[0].toLowerCase() + name.slice(1)}.ts`;
-
-if (existsSync(path)) {
-  const ans = await question(
-    'This will overwrite original file. Are you sure? y(es) '
-  );
-  if (!ans.match(/^y(es)?$/i)) {
-    exit(0);
-  }
-}
 
 const token = 'IToken';
 const literal = 'LiteralVal';
+const tokenImport = `import { ${token}, ${literal}} from '@/types/token';`;
 
-let content = '';
-
-const asArray = [
-  `Binary : ${name} left,${token} op,${name} right`,
-  `Grouping : ${name} expr`,
+const exprName = 'Expr';
+const exprs = [
+  `Binary : ${exprName} left,${token} op,${exprName} right`,
+  `Grouping : ${exprName} expr`,
   `Literal : ${literal} val`,
-  `Unary : ${token} op,${name} right`,
+  `Unary : ${token} op,${exprName} right`,
 ];
+const exprImports = `import { ${exprName} } from '@/${exprName[0].toLowerCase() + exprName.slice(1)}';`;
 
-content += `import { ${token}, ${literal} } from '@/types/token';\n\n`;
+const stmtName = 'Stmt';
+const stmts = [`Expression: ${exprName} expr`, `Print: ${exprName} expr`];
 
-content += writeVisitor(name, asArray) + '\n';
+await defineAst(outDir, exprName, exprs, [tokenImport]);
+await defineAst(outDir, stmtName, stmts, [exprImports]);
 
-content += `export interface ${name}Visitor<R> {\n`;
-content += `\tvisit: ${name}VisitorMap<R>;\n`;
-content += '}\n\n';
+exit(0);
 
-content += `export abstract class ${name} {\n`;
-content += `\tabstract accept<R>(visitor: ${name}Visitor<R>): R;\n`;
-content += '}\n\n';
+async function defineAst(outDir, name, asArray, imports) {
+  const path = `${outDir}/${name[0].toLowerCase() + name.slice(1)}.ts`;
+  if (existsSync(path)) {
+    const ans = await question(
+      'This will overwrite original file. Are you sure? y(es) '
+    );
+    if (!ans.match(/^y(es)?$/i)) {
+      return;
+    }
+  }
 
-for (const as of asArray) {
-  const className = as.split(':')[0].trim();
-  const fields = as.split(':')[1].trim();
-  content += `export class ${className} extends ${name} {\n`;
-  content += writeConstructor(fields.split(',')) + '\n';
-  content += writeAccept(name, className);
+  let content = '';
+  for (const i of imports) {
+    content += `${i}\n`;
+  }
+  content += '\n';
+
+  content += writeVisitor(name, asArray) + '\n';
+
+  content += `export interface ${name}Visitor<R> {\n`;
+  content += `\tvisit: ${name}VisitorMap<R>;\n`;
   content += '}\n\n';
-}
 
-try {
-  writeFileSync(path, content);
-  stdout.write(`succesfully created at path: ${path}\n`);
-  exit(0);
-} catch (err) {
-  stderr.write(`${err.message}\n`);
-  exit(66);
+  content += `export abstract class ${name} {\n`;
+  content += `\tabstract accept<R>(visitor: ${name}Visitor<R>): R;\n`;
+  content += '}\n\n';
+
+  for (const as of asArray) {
+    const className = as.split(':')[0].trim();
+    const fields = as.split(':')[1].trim();
+    content += `export class ${className} extends ${name} {\n`;
+    content += writeConstructor(fields.split(',')) + '\n';
+    content += writeAccept(name, className);
+    content += '}\n\n';
+  }
+
+  try {
+    writeFileSync(path, content);
+    stdout.write(`succesfully created at path: ${path}\n`);
+  } catch (err) {
+    stderr.write(`${err.message}\n`);
+    exit(66);
+  }
 }
 
 function writeVisitor(name, asArray) {

@@ -14,7 +14,7 @@ module.exports = {
   rules: {
     quotes: ['error', 'single'],
     semi: ['error', 'always'],
-    'max-len': ['error', { code: 80 }],
+    'max-len': ['error', { code: 120 }],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
