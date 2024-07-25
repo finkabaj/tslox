@@ -8,7 +8,6 @@ import { join } from 'node:path';
 import { Scanner } from '@/scan';
 import { Logger } from '@/logger';
 import { Parser } from '@/parser';
-import { AstPrinter } from './ast-printer';
 import { Interpreter } from './interpreter';
 
 const logger = new Logger();
@@ -77,13 +76,13 @@ const run = (source: string) => {
   const scanner = new Scanner(logger, source);
   const tokens = scanner.scanTokens();
   const parser = new Parser(logger, tokens);
-  const expr = parser.parse();
+  const statements = parser.parse();
 
   if (logger.hadError) {
     return;
   }
 
-  interpreter.interpret(expr!);
+  interpreter.interpret(statements);
 };
 
 main();

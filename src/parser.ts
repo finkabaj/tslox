@@ -1,7 +1,7 @@
 import { IToken, TokenType } from '@/types/token';
 import { Binary, Expr, Unary, Literal, Grouping } from '@/expr';
 import { ILogger } from '@/types/logger';
-import { stderr } from 'node:process';
+import { Expression, Print, Stmt } from '@/stmt';
 
 class ParseError extends Error {}
 
@@ -15,21 +15,34 @@ export class Parser {
     this.logger = logger;
   }
 
-  public parse(): Expr | null {
-    try {
-      return this.expression();
-    } catch (error) {
-      if (error instanceof ParseError) {
-        return null;
-      }
-
-      stderr.write('Unexpected error during parsing: ' + error);
-      return null;
+  public parse(): Stmt[] {
+    const statements: Stmt[] = [];
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+    return statements;
   }
 
   private expression(): Expr {
     return this.equality();
+  }
+
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+
+    return this.expressionStatement();
+  }
+
+  private printStatement(): Stmt {
+    const val = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Print(val);
+  }
+
+  private expressionStatement(): Stmt {
+    const expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    return new Expression(expr);
   }
 
   private equality(): Expr {
@@ -158,7 +171,7 @@ export class Parser {
 
   private error(token: IToken, message: string) {
     this.logger.error(token, message);
-    return new ParseError();
+    return new ParseError(message);
   }
 
   private previous(): IToken {

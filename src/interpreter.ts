@@ -11,20 +11,22 @@ import { IToken, LiteralVal, TokenType } from '@/types/token';
 import { RuntimeError } from '@/logger';
 import { stdout } from 'process';
 import { ILogger } from '@/types/logger';
+import { Expression, Print, Stmt, StmtVisitor, StmtVisitorMap } from '@/stmt';
 
-export class Interpreter implements ExprVisitor<LiteralVal> {
+export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
   constructor(private readonly logger: ILogger) {}
 
-  public interpret(expr: Expr): void {
+  public interpret(statements: Stmt[]): void {
     try {
-      const val = this.evaluate(expr);
-      stdout.write(this.stringify(val) + '\n');
+      for (const stmt of statements) {
+        this.execute(stmt);
+      }
     } catch (err) {
       this.logger.runtimeError(err as RuntimeError);
     }
   }
 
-  readonly visit: ExprVisitorMap<LiteralVal> = {
+  readonly visit: ExprVisitorMap<LiteralVal> & StmtVisitorMap<void> = {
     visitBinaryExpr: (expr: Binary) => {
       const left = this.evaluate(expr.left);
       const right = this.evaluate(expr.right);
@@ -96,10 +98,17 @@ export class Interpreter implements ExprVisitor<LiteralVal> {
     },
     visitLiteralExpr: (expr: Literal) => expr.val,
     visitGroupingExpr: (expr: Grouping) => this.evaluate(expr.expr),
+    visitPrintStmt: (stmt: Print) =>
+      stdout.write(`${this.stringify(this.evaluate(stmt.expr))}\n`),
+    visitExpressionStmt: (stmt: Expression) => this.evaluate(stmt.expr),
   };
 
   private evaluate(expr: Expr): LiteralVal {
     return expr.accept(this);
+  }
+
+  private execute(stmt: Stmt): void {
+    stmt.accept(this);
   }
 
   private isTruthy(val: LiteralVal): boolean {
