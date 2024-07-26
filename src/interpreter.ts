@@ -1,4 +1,5 @@
 import {
+  Assign,
   Binary,
   Expr,
   ExprVisitor,
@@ -6,14 +7,25 @@ import {
   Grouping,
   Literal,
   Unary,
+  Variable,
 } from '@/expr';
 import { IToken, LiteralVal, TokenType } from '@/types/token';
 import { RuntimeError } from '@/logger';
 import { stdout } from 'process';
 import { ILogger } from '@/types/logger';
-import { Expression, Print, Stmt, StmtVisitor, StmtVisitorMap } from '@/stmt';
+import {
+  Expression,
+  Print,
+  Stmt,
+  StmtVisitor,
+  StmtVisitorMap,
+  Var,
+} from '@/stmt';
+import { Environment } from '@/environment';
 
 export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
+  private environment = new Environment();
+
   constructor(private readonly logger: ILogger) {}
 
   public interpret(statements: Stmt[]): void {
@@ -98,9 +110,23 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     },
     visitLiteralExpr: (expr: Literal) => expr.val,
     visitGroupingExpr: (expr: Grouping) => this.evaluate(expr.expr),
+    visitVariableExpr: (expr: Variable) => this.environment.get(expr.name),
     visitPrintStmt: (stmt: Print) =>
       stdout.write(`${this.stringify(this.evaluate(stmt.expr))}\n`),
     visitExpressionStmt: (stmt: Expression) => this.evaluate(stmt.expr),
+    visitVarStmt: (stmt: Var) => {
+      let value: LiteralVal = null;
+      if (stmt.initializer != null) {
+        value = this.evaluate(stmt.initializer);
+      }
+
+      this.environment.define(stmt.name.lexeme, value);
+    },
+    visitAssignExpr: (expr: Assign) => {
+      const value = this.evaluate(expr.value);
+      this.environment.assign(expr.name, value);
+      return value;
+    },
   };
 
   private evaluate(expr: Expr): LiteralVal {

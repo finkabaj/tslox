@@ -16,6 +16,7 @@ const tokenImport = `import { ${token}, ${literal}} from '@/types/token';`;
 
 const exprName = 'Expr';
 const exprs = [
+  `Assign: ${token} name,${exprName} value`,
   `Binary: ${exprName} left,${token} op,${exprName} right`,
   `Grouping: ${exprName} expr`,
   `Literal: ${literal} val`,
