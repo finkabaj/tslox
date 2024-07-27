@@ -27,6 +27,7 @@ const exprImports = `import { ${exprName} } from '@/${exprName[0].toLowerCase() 
 
 const stmtName = 'Stmt';
 const stmts = [
+  `Block: ${stmtName}[] statements`,
   `Expression: ${exprName} expr`,
   `Print: ${exprName} expr`,
   `Var: ${token} name,${exprName}|null initializer`,

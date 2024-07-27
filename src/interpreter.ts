@@ -14,6 +14,7 @@ import { RuntimeError } from '@/logger';
 import { stdout } from 'process';
 import { ILogger } from '@/types/logger';
 import {
+  Block,
   Expression,
   Print,
   Stmt,
@@ -39,6 +40,9 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
   }
 
   readonly visit: ExprVisitorMap<LiteralVal> & StmtVisitorMap<void> = {
+    visitBlockStmt: (stmt: Block) =>
+      this.executeBlock(stmt.statements, new Environment(this.environment)),
+
     visitBinaryExpr: (expr: Binary) => {
       const left = this.evaluate(expr.left);
       const right = this.evaluate(expr.right);
@@ -135,6 +139,20 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
 
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  private executeBlock(statements: Stmt[], environment: Environment): void {
+    const prev = this.environment;
+
+    try {
+      this.environment = environment;
+
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = prev;
+    }
   }
 
   private isTruthy(val: LiteralVal): boolean {

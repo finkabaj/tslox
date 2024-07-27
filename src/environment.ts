@@ -4,6 +4,8 @@ import { RuntimeError } from '@/logger';
 export class Environment {
   private readonly values: Map<string, LiteralVal> = new Map();
 
+  constructor(readonly enclosing?: Environment) {}
+
   public define(name: string, value: LiteralVal): void {
     this.values.set(name, value);
   }
@@ -13,6 +15,8 @@ export class Environment {
       return this.values.get(name.lexeme)!;
     }
 
+    if (this.enclosing) return this.enclosing.get(name);
+
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
   }
 
@@ -21,6 +25,8 @@ export class Environment {
       this.values.set(name.lexeme, value);
       return;
     }
+
+    if (this.enclosing) return this.enclosing.assign(name, value);
 
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
   }

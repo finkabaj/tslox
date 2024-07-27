@@ -45,30 +45,65 @@ const runFile = (path: string) => {
   }
 };
 
+// TODO: make scopes in REPL
+
 function repl() {
   const rl = createInterface({
     input: stdin,
     output: stdout,
   });
 
-  stdin.write('> ');
+  let blocks = 0;
+  let block = '';
+
+  const prompt = () => {
+    rl.setPrompt(blocks > 0 ? '... ' : '> ');
+    rl.prompt();
+  };
+
+  prompt();
+
   rl.on('line', (ln) => {
-    run(ln);
-    logger.hadError = false;
-    stdout.write('> ');
+    if (ln.trim() === '') {
+      prompt();
+      return;
+    }
+
+    blocks += (ln.match(/{/g) || []).length;
+    blocks -= (ln.match(/}/g) || []).length;
+
+    if (blocks > 0) {
+      block += ln + '\n';
+    } else {
+      run(block + ln);
+      block = '';
+      logger.hadError = false;
+      logger.hadRuntimeError = false;
+    }
+
+    prompt();
   });
 
   rl.on('SIGINT', () => {
-    rl.question('Are you sure you want to exit? y(es) ', (ans) => {
-      if (ans.match(/^y(es)?$/i)) {
-        exit(EX.OK);
-      }
-      stdout.write('> ');
-    });
+    if (blocks > 0) {
+      stdout.write('\n');
+      blocks = 0;
+      block = '';
+      prompt();
+    } else {
+      rl.question('Are you sure you want to exit? (y/n) ', (ans) => {
+        if (ans.toLowerCase() === 'y') {
+          rl.close();
+        } else {
+          prompt();
+        }
+      });
+    }
   });
 
   rl.on('close', () => {
-    stdout.write('\ndone\n');
+    stdout.write('\nGoodbye!\n');
+    exit(0);
   });
 }
 
