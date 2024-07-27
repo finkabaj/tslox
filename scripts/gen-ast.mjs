@@ -20,6 +20,7 @@ const exprs = [
   `Binary: ${exprName} left,${token} op,${exprName} right`,
   `Grouping: ${exprName} expr`,
   `Literal: ${literal} val`,
+  `Logical: ${exprName} left,${token} op,${exprName} right`,
   `Unary: ${token} op,${exprName} right`,
   `Variable: ${token} name`,
 ];
@@ -29,6 +30,7 @@ const stmtName = 'Stmt';
 const stmts = [
   `Block: ${stmtName}[] statements`,
   `Expression: ${exprName} expr`,
+  `If: ${exprName} condition,${stmtName} thenBranch,${stmtName}|null elseBranch`,
   `Print: ${exprName} expr`,
   `Var: ${token} name,${exprName}|null initializer`,
 ];

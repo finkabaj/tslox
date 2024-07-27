@@ -6,6 +6,7 @@ import {
   ExprVisitorMap,
   Grouping,
   Literal,
+  Logical,
   Unary,
   Variable,
 } from '@/expr';
@@ -16,6 +17,7 @@ import { ILogger } from '@/types/logger';
 import {
   Block,
   Expression,
+  If,
   Print,
   Stmt,
   StmtVisitor,
@@ -113,11 +115,29 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
       return null;
     },
     visitLiteralExpr: (expr: Literal) => expr.val,
+    visitLogicalExpr: (expr: Logical) => {
+      const left = this.evaluate(expr.left);
+
+      if (expr.op.type === TokenType.OR) {
+        if (this.isTruthy(left)) return left;
+      } else {
+        if (!this.isTruthy(left)) return left;
+      }
+
+      return this.evaluate(expr.right);
+    },
     visitGroupingExpr: (expr: Grouping) => this.evaluate(expr.expr),
     visitVariableExpr: (expr: Variable) => this.environment.get(expr.name),
     visitPrintStmt: (stmt: Print) =>
       stdout.write(`${this.stringify(this.evaluate(stmt.expr))}\n`),
     visitExpressionStmt: (stmt: Expression) => this.evaluate(stmt.expr),
+    visitIfStmt: (stmt: If) => {
+      if (this.isTruthy(this.evaluate(stmt.condition))) {
+        this.execute(stmt.thenBranch);
+      } else if (stmt.elseBranch !== null) {
+        this.execute(stmt.elseBranch);
+      }
+    },
     visitVarStmt: (stmt: Var) => {
       let value: LiteralVal = null;
       if (stmt.initializer != null) {
