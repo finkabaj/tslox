@@ -7,6 +7,7 @@ export type StmtVisitorMap<R> = {
   visitIfStmt: (expr: If) => R;
   visitPrintStmt: (expr: Print) => R;
   visitVarStmt: (expr: Var) => R;
+  visitWhileStmt: (expr: While) => R;
 };
 
 export interface StmtVisitor<R> {
@@ -71,5 +72,18 @@ export class Var extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visit.visitVarStmt(this);
+  }
+}
+
+export class While extends Stmt {
+  constructor(
+    public readonly condition: Expr,
+    public readonly body: Stmt
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visit.visitWhileStmt(this);
   }
 }

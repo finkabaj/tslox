@@ -23,6 +23,7 @@ import {
   StmtVisitor,
   StmtVisitorMap,
   Var,
+  While,
 } from '@/stmt';
 import { Environment } from '@/environment';
 
@@ -145,6 +146,11 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
       }
 
       this.environment.define(stmt.name.lexeme, value);
+    },
+    visitWhileStmt: (stmt: While) => {
+      while (this.isTruthy(this.evaluate(stmt.condition))) {
+        this.execute(stmt.body);
+      }
     },
     visitAssignExpr: (expr: Assign) => {
       const value = this.evaluate(expr.value);

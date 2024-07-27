@@ -33,6 +33,7 @@ const stmts = [
   `If: ${exprName} condition,${stmtName} thenBranch,${stmtName}|null elseBranch`,
   `Print: ${exprName} expr`,
   `Var: ${token} name,${exprName}|null initializer`,
+  `While: ${exprName} condition,${stmtName} body`,
 ];
 
 await defineAst(outDir, exprName, exprs, [tokenImport]);

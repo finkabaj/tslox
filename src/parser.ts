@@ -10,7 +10,7 @@ import {
   Logical,
 } from '@/expr';
 import { ILogger } from '@/types/logger';
-import { Block, Expression, If, Print, Stmt, Var } from '@/stmt';
+import { Block, Expression, If, Print, Stmt, Var, While } from '@/stmt';
 
 class ParseError extends Error {}
 
@@ -49,11 +49,51 @@ export class Parser {
   }
 
   private statement(): Stmt {
+    if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
+  }
+
+  // TODO: add suport for break and continue statements
+  private forStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+    let initializer: Stmt | null;
+    if (this.match(TokenType.SEMICOLON)) {
+      initializer = null;
+    } else if (this.match(TokenType.VAR)) {
+      initializer = this.varDeclaration();
+    } else {
+      initializer = this.expressionStatement();
+    }
+
+    let condition: Expr | null = null;
+    if (!this.check(TokenType.SEMICOLON)) {
+      condition = this.expression();
+    }
+    this.consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+    let increment: Expr | null = null;
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      increment = this.expression();
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    let body = this.statement();
+
+    if (increment !== null)
+      body = new Block([body, new Expression(increment!)]);
+
+    if (condition === null) condition = new Literal(true);
+    body = new While(condition, body);
+
+    if (initializer !== null) body = new Block([initializer, body]);
+
+    return body;
   }
 
   private ifStatement(): Stmt {
@@ -84,6 +124,15 @@ export class Parser {
 
     this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
     return new Var(name, initializer);
+  }
+
+  private whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    const condition = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+    const body = this.statement();
+
+    return new While(condition, body);
   }
 
   private expressionStatement(): Stmt {
