@@ -30,9 +30,16 @@ import { Environment } from '@/environment';
 import { isLoxCallable, LoxCallable } from '@/callable';
 
 export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
+  readonly globals = new Environment();
   private environment = new Environment();
 
-  constructor(private readonly logger: ILogger) {}
+  constructor(private readonly logger: ILogger) {
+    this.globals.define('clock', {
+      arity: () => 0,
+      call: () => Date.now() / 1000,
+      toString: () => '<native fn>',
+    });
+  }
 
   public interpret(statements: Stmt[]): void {
     try {
@@ -85,7 +92,7 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
           return <number>left * <number>right;
         case TokenType.PLUS:
           if (left === null || right === null) {
-            throw new RuntimeError(expr.op, 'Can not sum nil values.');
+            throw new RuntimeError(expr.op, "Can't sum nil values.");
           }
 
           if (typeof left === 'number' && typeof right === 'number') {
@@ -107,10 +114,7 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     visitCallExpr: (expr: Call) => {
       const callee = this.evaluate(expr.callee);
 
-      const args: LiteralVal[] = [];
-      for (const arg of expr.args) {
-        args.push(this.evaluate(arg));
-      }
+      const args: LiteralVal[] = expr.args.map((arg) => this.evaluate(arg));
 
       if (!isLoxCallable(callee)) {
         throw new RuntimeError(

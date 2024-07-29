@@ -4,9 +4,15 @@ import { LiteralVal } from '@/types/token';
 export interface LoxCallable {
   call: (interpreter: Interpreter, args: LiteralVal[]) => LiteralVal;
   arity: () => number;
+  toString: () => string;
 }
 
-export function isLoxCallable(obj: LiteralVal): obj is LoxCallable {
-  const cast = <LoxCallable>obj;
-  return cast.call !== undefined && cast.arity !== undefined;
+export function isLoxCallable(val: LiteralVal): val is LoxCallable {
+  return (
+    val != null &&
+    typeof val === 'object' &&
+    'call' in val &&
+    'arity' in val &&
+    'toString' in val
+  );
 }
