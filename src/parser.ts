@@ -11,7 +11,7 @@ import {
   Call,
 } from '@/expr';
 import { ILogger } from '@/types/logger';
-import { Block, Expression, If, Print, Stmt, Var, While } from '@/stmt';
+import { Block, Expression, Func, If, Print, Stmt, Var, While } from '@/stmt';
 
 class ParseError extends Error {}
 
@@ -40,6 +40,7 @@ export class Parser {
 
   private declaration(): Stmt | null {
     try {
+      if (this.match(TokenType.FUN)) return this.function('function');
       if (this.match(TokenType.VAR)) return this.varDeclaration();
 
       return this.statement();
@@ -140,6 +141,29 @@ export class Parser {
     const expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(expr);
+  }
+
+  private function(kind: string): Func {
+    const name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+    const params: IToken[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (params.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters.");
+        }
+
+        params.push(
+          this.consume(TokenType.IDENTIFIER, 'Expect parameter name.')
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+    const body = this.block();
+    return new Func(name, params, body);
   }
 
   private block(): Stmt[] {

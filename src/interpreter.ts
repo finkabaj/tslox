@@ -18,6 +18,7 @@ import { ILogger } from '@/types/logger';
 import {
   Block,
   Expression,
+  Func,
   If,
   Print,
   Stmt,
@@ -28,6 +29,7 @@ import {
 } from '@/stmt';
 import { Environment } from '@/environment';
 import { isLoxCallable, LoxCallable } from '@/callable';
+import { LoxFunction } from './function';
 
 export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
   readonly globals = new Environment();
@@ -164,6 +166,10 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     visitPrintStmt: (stmt: Print) =>
       stdout.write(`${this.stringify(this.evaluate(stmt.expr))}\n`),
     visitExpressionStmt: (stmt: Expression) => this.evaluate(stmt.expr),
+    visitFuncStmt: (stmt: Func) => {
+      const func = new LoxFunction(stmt);
+      this.environment.define(stmt.name.lexeme, func);
+    },
     visitIfStmt: (stmt: If) => {
       if (this.isTruthy(this.evaluate(stmt.condition))) {
         this.execute(stmt.thenBranch);
@@ -199,7 +205,7 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     stmt.accept(this);
   }
 
-  private executeBlock(statements: Stmt[], environment: Environment): void {
+  public executeBlock(statements: Stmt[], environment: Environment): void {
     const prev = this.environment;
 
     try {

@@ -31,6 +31,7 @@ const stmtName = 'Stmt';
 const stmts = [
   `Block: ${stmtName}[] statements`,
   `Expression: ${exprName} expr`,
+  `Func: ${token} name,${token}[] params,${stmtName}[] body`,
   `If: ${exprName} condition,${stmtName} thenBranch,${stmtName}|null elseBranch`,
   `Print: ${exprName} expr`,
   `Var: ${token} name,${exprName}|null initializer`,
