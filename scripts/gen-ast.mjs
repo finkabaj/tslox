@@ -18,6 +18,7 @@ const exprName = 'Expr';
 const exprs = [
   `Assign: ${token} name,${exprName} value`,
   `Binary: ${exprName} left,${token} op,${exprName} right`,
+  `Call: ${exprName} callee,${token} paren,${exprName}[] args`,
   `Grouping: ${exprName} expr`,
   `Literal: ${literal} val`,
   `Logical: ${exprName} left,${token} op,${exprName} right`,
@@ -45,7 +46,7 @@ async function defineAst(outDir, name, asArray, imports) {
   const path = `${outDir}/${name[0].toLowerCase() + name.slice(1)}.ts`;
   if (existsSync(path)) {
     const ans = await question(
-      'This will overwrite original file. Are you sure? y(es) '
+      `This will overwrite original file: ${path}. Are you sure? y(es) `
     );
     if (!ans.match(/^y(es)?$/i)) {
       return;

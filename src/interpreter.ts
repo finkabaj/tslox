@@ -1,6 +1,7 @@
 import {
   Assign,
   Binary,
+  Call,
   Expr,
   ExprVisitor,
   ExprVisitorMap,
@@ -26,6 +27,7 @@ import {
   While,
 } from '@/stmt';
 import { Environment } from '@/environment';
+import { isLoxCallable, LoxCallable } from '@/callable';
 
 export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
   private environment = new Environment();
@@ -101,6 +103,32 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
       }
 
       return null;
+    },
+    visitCallExpr: (expr: Call) => {
+      const callee = this.evaluate(expr.callee);
+
+      const args: LiteralVal[] = [];
+      for (const arg of expr.args) {
+        args.push(this.evaluate(arg));
+      }
+
+      if (!isLoxCallable(callee)) {
+        throw new RuntimeError(
+          expr.paren,
+          'Can only call functions and classes.'
+        );
+      }
+
+      const fn = callee as LoxCallable;
+
+      if (args.length != fn.arity()) {
+        throw new RuntimeError(
+          expr.paren,
+          `Expected ${fn.arity()} arguments but got ${args.length}.`
+        );
+      }
+
+      return fn.call(this, args);
     },
     visitUnaryExpr: (expr: Unary) => {
       const right = this.evaluate(expr.right);

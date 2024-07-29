@@ -1,3 +1,5 @@
+import { LoxCallable } from '@/callable';
+
 export enum TokenType {
   LEFT_PAREN,
   RIGHT_PAREN,
@@ -49,7 +51,7 @@ export enum TokenType {
   EOF,
 }
 
-export type LiteralVal = string | number | boolean | null;
+export type LiteralVal = string | number | boolean | LoxCallable | null;
 
 export interface IToken {
   type: TokenType;

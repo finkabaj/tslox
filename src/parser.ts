@@ -8,6 +8,7 @@ import {
   Variable,
   Assign,
   Logical,
+  Call,
 } from '@/expr';
 import { ILogger } from '@/types/logger';
 import { Block, Expression, If, Print, Stmt, Var, While } from '@/stmt';
@@ -257,7 +258,40 @@ export class Parser {
       return new Unary(op, right);
     }
 
-    return this.primary();
+    return this.call();
+  }
+
+  private finishCall(callee: Expr): Expr {
+    const args: Expr[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (args.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 arguments.");
+        }
+        args.push(this.expression());
+      } while (this.match(TokenType.COMMA));
+    }
+
+    const paren = this.consume(
+      TokenType.RIGHT_PAREN,
+      "Expect ')' after arguments."
+    );
+
+    return new Call(callee, paren, args);
+  }
+
+  private call(): Expr {
+    let expr = this.primary();
+
+    while (true) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.finishCall(expr);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
   }
 
   private primary(): Expr {

@@ -3,6 +3,7 @@ import { IToken, LiteralVal } from '@/types/token';
 export type ExprVisitorMap<R> = {
   visitAssignExpr: (expr: Assign) => R;
   visitBinaryExpr: (expr: Binary) => R;
+  visitCallExpr: (expr: Call) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
   visitLogicalExpr: (expr: Logical) => R;
@@ -42,6 +43,20 @@ export class Binary extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visit.visitBinaryExpr(this);
+  }
+}
+
+export class Call extends Expr {
+  constructor(
+    public readonly callee: Expr,
+    public readonly paren: IToken,
+    public readonly args: Expr[]
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitCallExpr(this);
   }
 }
 
