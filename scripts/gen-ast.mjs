@@ -34,6 +34,7 @@ const stmts = [
   `Func: ${token} name,${token}[] params,${stmtName}[] body`,
   `If: ${exprName} condition,${stmtName} thenBranch,${stmtName}|null elseBranch`,
   `Print: ${exprName} expr`,
+  `Return: ${token} keyword,${exprName}|null value`,
   `Var: ${token} name,${exprName}|null initializer`,
   `While: ${exprName} condition,${stmtName} body`,
 ];

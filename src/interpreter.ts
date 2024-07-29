@@ -21,6 +21,7 @@ import {
   Func,
   If,
   Print,
+  Return,
   Stmt,
   StmtVisitor,
   StmtVisitorMap,
@@ -28,12 +29,13 @@ import {
   While,
 } from '@/stmt';
 import { Environment } from '@/environment';
-import { isLoxCallable, LoxCallable } from '@/callable';
-import { LoxFunction } from './function';
+import { isLoxCallable } from '@/callable';
+import { LoxFunction } from '@/function';
+import { Return as ReturnException } from '@/return';
 
 export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
   readonly globals = new Environment();
-  private environment = new Environment();
+  private environment: Environment = this.globals;
 
   constructor(private readonly logger: ILogger) {
     this.globals.define('clock', {
@@ -49,7 +51,9 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
         this.execute(stmt);
       }
     } catch (err) {
-      this.logger.runtimeError(err as RuntimeError);
+      if (err instanceof RuntimeError) {
+        this.logger.runtimeError(err);
+      }
     }
   }
 
@@ -125,16 +129,14 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
         );
       }
 
-      const fn = callee as LoxCallable;
-
-      if (args.length != fn.arity()) {
+      if (args.length != callee.arity()) {
         throw new RuntimeError(
           expr.paren,
-          `Expected ${fn.arity()} arguments but got ${args.length}.`
+          `Expected ${callee.arity()} arguments but got ${args.length}.`
         );
       }
 
-      return fn.call(this, args);
+      return callee.call(this, args);
     },
     visitUnaryExpr: (expr: Unary) => {
       const right = this.evaluate(expr.right);
@@ -165,6 +167,12 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     visitVariableExpr: (expr: Variable) => this.environment.get(expr.name),
     visitPrintStmt: (stmt: Print) =>
       stdout.write(`${this.stringify(this.evaluate(stmt.expr))}\n`),
+    visitReturnStmt: (stmt: Return) => {
+      let value: LiteralVal = null;
+      if (stmt.value !== null) value = this.evaluate(stmt.value);
+
+      throw new ReturnException(value);
+    },
     visitExpressionStmt: (stmt: Expression) => this.evaluate(stmt.expr),
     visitFuncStmt: (stmt: Func) => {
       const func = new LoxFunction(stmt);

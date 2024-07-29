@@ -7,6 +7,7 @@ export type StmtVisitorMap<R> = {
   visitFuncStmt: (expr: Func) => R;
   visitIfStmt: (expr: If) => R;
   visitPrintStmt: (expr: Print) => R;
+  visitReturnStmt: (expr: Return) => R;
   visitVarStmt: (expr: Var) => R;
   visitWhileStmt: (expr: While) => R;
 };
@@ -74,6 +75,19 @@ export class Print extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visit.visitPrintStmt(this);
+  }
+}
+
+export class Return extends Stmt {
+  constructor(
+    public readonly keyword: IToken,
+    public readonly value: Expr | null
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visit.visitReturnStmt(this);
   }
 }
 
