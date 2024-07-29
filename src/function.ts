@@ -7,13 +7,15 @@ import { Return } from '@/return';
 
 export class LoxFunction implements LoxCallable {
   private readonly declaration: Func;
+  private readonly closure: Environment;
 
-  constructor(declaration: Func) {
+  constructor(declaration: Func, closure: Environment) {
     this.declaration = declaration;
+    this.closure = closure;
   }
 
   public call(interpreter: Interpreter, args: LiteralVal[]): LiteralVal {
-    const environment = new Environment(interpreter.globals);
+    const environment = new Environment(this.closure);
     for (let i = 0; i < this.declaration.params.length; i++) {
       environment.define(this.declaration.params[i].lexeme, args[i]);
     }

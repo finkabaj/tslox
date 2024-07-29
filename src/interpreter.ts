@@ -175,7 +175,7 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     },
     visitExpressionStmt: (stmt: Expression) => this.evaluate(stmt.expr),
     visitFuncStmt: (stmt: Func) => {
-      const func = new LoxFunction(stmt);
+      const func = new LoxFunction(stmt, this.environment);
       this.environment.define(stmt.name.lexeme, func);
     },
     visitIfStmt: (stmt: If) => {
