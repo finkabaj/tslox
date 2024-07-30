@@ -9,6 +9,7 @@ import { Scanner } from '@/scan';
 import { Logger } from '@/logger';
 import { Parser } from '@/parser';
 import { Interpreter } from './interpreter';
+import { Resolver } from './resolver';
 
 const logger = new Logger();
 const interpreter = new Interpreter(logger);
@@ -113,11 +114,15 @@ const run = (source: string) => {
   const parser = new Parser(logger, tokens);
   const statements = parser.parse();
 
-  if (logger.hadError) {
-    return;
-  }
+  if (logger.hadError) return;
+
+  const resolver = new Resolver(interpreter, logger);
+  resolver.resolve(statements);
+
+  if (logger.hadError) return;
 
   interpreter.interpret(statements);
 };
 
+//TODO: add anonymous functions
 main();

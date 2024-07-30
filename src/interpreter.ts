@@ -36,6 +36,7 @@ import { Return as ReturnException } from '@/return';
 export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
   readonly globals = new Environment();
   private environment: Environment = this.globals;
+  private readonly locals: Map<Expr, number> = new Map();
 
   constructor(private readonly logger: ILogger) {
     this.globals.define('clock', {
@@ -164,7 +165,7 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
       return this.evaluate(expr.right);
     },
     visitGroupingExpr: (expr: Grouping) => this.evaluate(expr.expr),
-    visitVariableExpr: (expr: Variable) => this.environment.get(expr.name),
+    visitVariableExpr: (expr: Variable) => this.lookUpVariable(expr.name, expr),
     visitPrintStmt: (stmt: Print) =>
       stdout.write(`${this.stringify(this.evaluate(stmt.expr))}\n`),
     visitReturnStmt: (stmt: Return) => {
@@ -200,7 +201,14 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     },
     visitAssignExpr: (expr: Assign) => {
       const value = this.evaluate(expr.value);
-      this.environment.assign(expr.name, value);
+
+      const distance = this.locals.get(expr);
+      if (distance !== undefined) {
+        this.environment.assignAt(distance, expr.name, value);
+      } else {
+        this.globals.assign(expr.name, value);
+      }
+
       return value;
     },
   };
@@ -211,6 +219,10 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
 
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  public resolve(expr: Expr, depth: number): void {
+    this.locals.set(expr, depth);
   }
 
   public executeBlock(statements: Stmt[], environment: Environment): void {
@@ -263,5 +275,14 @@ export class Interpreter implements ExprVisitor<LiteralVal>, StmtVisitor<void> {
     }
 
     return val.toString();
+  }
+
+  private lookUpVariable(name: IToken, expr: Expr): LiteralVal {
+    const distance = this.locals.get(expr);
+    if (distance !== undefined) {
+      return this.environment.getAt(distance, name.lexeme);
+    } else {
+      return this.globals.get(name);
+    }
   }
 }
