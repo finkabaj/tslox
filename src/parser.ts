@@ -9,10 +9,14 @@ import {
   Assign,
   Logical,
   Call,
+  Get,
+  Set,
+  This,
 } from '@/expr';
 import { ILogger } from '@/types/logger';
 import {
   Block,
+  Class,
   Expression,
   Func,
   If,
@@ -50,6 +54,7 @@ export class Parser {
 
   private declaration(): Stmt | null {
     try {
+      if (this.match(TokenType.CLASS)) return this.classDeclaration();
       if (this.match(TokenType.FUN)) return this.function('function');
       if (this.match(TokenType.VAR)) return this.varDeclaration();
 
@@ -58,6 +63,20 @@ export class Parser {
       this.synchronize();
       return null;
     }
+  }
+
+  private classDeclaration(): Stmt {
+    const name = this.consume(TokenType.IDENTIFIER, 'Expect class name.');
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    const methods: Func[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      methods.push(this.function('method'));
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+    return new Class(name, methods);
   }
 
   private statement(): Stmt {
@@ -210,6 +229,8 @@ export class Parser {
       if (expr instanceof Variable) {
         const name = expr.name;
         return new Assign(name, value);
+      } else if (expr instanceof Get) {
+        return new Set(expr.object, expr.name, value);
       }
 
       this.error(equals, 'Invalid assignment target.');
@@ -332,6 +353,12 @@ export class Parser {
     while (true) {
       if (this.match(TokenType.LEFT_PAREN)) {
         expr = this.finishCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        const name = this.consume(
+          TokenType.IDENTIFIER,
+          "Expect property name after '.'."
+        );
+        expr = new Get(expr, name);
       } else {
         break;
       }
@@ -348,6 +375,8 @@ export class Parser {
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
     }
+
+    if (this.match(TokenType.THIS)) return new This(this.previous());
 
     if (this.match(TokenType.IDENTIFIER)) {
       return new Variable(this.previous());

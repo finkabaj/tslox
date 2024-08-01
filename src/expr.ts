@@ -4,9 +4,12 @@ export type ExprVisitorMap<R> = {
   visitAssignExpr: (expr: Assign) => R;
   visitBinaryExpr: (expr: Binary) => R;
   visitCallExpr: (expr: Call) => R;
+  visitGetExpr: (expr: Get) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
   visitLogicalExpr: (expr: Logical) => R;
+  visitSetExpr: (expr: Set) => R;
+  visitThisExpr: (expr: This) => R;
   visitUnaryExpr: (expr: Unary) => R;
   visitVariableExpr: (expr: Variable) => R;
 };
@@ -60,6 +63,19 @@ export class Call extends Expr {
   }
 }
 
+export class Get extends Expr {
+  constructor(
+    public readonly object: Expr,
+    public readonly name: IToken
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitGetExpr(this);
+  }
+}
+
 export class Grouping extends Expr {
   constructor(public readonly expr: Expr) {
     super();
@@ -91,6 +107,30 @@ export class Logical extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visit.visitLogicalExpr(this);
+  }
+}
+
+export class Set extends Expr {
+  constructor(
+    public readonly object: Expr,
+    public readonly name: IToken,
+    public readonly value: Expr
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitSetExpr(this);
+  }
+}
+
+export class This extends Expr {
+  constructor(public readonly keyword: IToken) {
+    super();
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitThisExpr(this);
   }
 }
 

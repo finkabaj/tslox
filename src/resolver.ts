@@ -5,14 +5,18 @@ import {
   Expr,
   ExprVisitor,
   ExprVisitorMap,
+  Get,
   Grouping,
   Literal,
   Logical,
+  Set,
+  This,
   Unary,
   Variable,
 } from '@/expr';
 import {
   Block,
+  Class,
   Expression,
   Func,
   If,
@@ -31,6 +35,13 @@ import { ILogger } from './types/logger';
 enum FunctionType {
   NONE,
   FUNCTION,
+  INITIALIZER,
+  METHOD,
+}
+
+enum ClassType {
+  NONE,
+  CLASS,
 }
 
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -38,6 +49,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly scopes: Map<string, boolean>[] = [];
   private readonly logger: ILogger;
   private currentFunction = FunctionType.NONE;
+  private currentClass = ClassType.NONE;
 
   constructor(interpreter: Interpreter, logger: ILogger) {
     this.interpreter = interpreter;
@@ -49,6 +61,28 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       this.beginScope();
       this._resolve(stmt.statements);
       this.endScope();
+    },
+    visitClassStmt: (stmt: Class) => {
+      const enclosingClass = this.currentClass;
+      this.currentClass = ClassType.CLASS;
+
+      this.declare(stmt.name);
+      this.define(stmt.name);
+
+      this.beginScope();
+      this.scopes[this.scopes.length - 1].set('this', true);
+
+      for (const method of stmt.methods) {
+        let declaration = FunctionType.METHOD;
+        if (method.name.lexeme === 'init') {
+          declaration = FunctionType.INITIALIZER;
+        }
+        this.resolveFunction(method, declaration);
+      }
+
+      this.endScope();
+
+      this.currentClass = enclosingClass;
     },
     visitExpressionStmt: (stmt: Expression) => this._resolve(stmt.expr),
     visitFuncStmt: (stmt: Func) => {
@@ -67,7 +101,16 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       if (this.currentFunction === FunctionType.NONE)
         this.logger.error(stmt.keyword, "Can't return from top-level code.");
 
-      if (stmt.value !== null) this._resolve(stmt.value);
+      if (stmt.value !== null) {
+        if (this.currentFunction === FunctionType.INITIALIZER) {
+          this.logger.error(
+            stmt.keyword,
+            "Can't return a value from and initializer."
+          );
+        }
+
+        this._resolve(stmt.value);
+      }
     },
     visitVarStmt: (stmt: Var) => {
       this.declare(stmt.name);
@@ -90,14 +133,27 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     },
     visitCallExpr: (expr: Call) => {
       this._resolve(expr.callee);
-
       expr.args.forEach((arg) => this._resolve(arg));
     },
+    visitGetExpr: (expr: Get) => this._resolve(expr.object),
+
     visitGroupingExpr: (expr: Grouping) => this._resolve(expr.expr),
     visitLiteralExpr: (_expr: Literal) => {},
     visitLogicalExpr: (expr: Logical) => {
       this._resolve(expr.left);
       this._resolve(expr.right);
+    },
+    visitSetExpr: (expr: Set) => {
+      this._resolve(expr.value);
+      this._resolve(expr.object);
+    },
+    visitThisExpr: (expr: This) => {
+      if (this.currentClass === ClassType.NONE) {
+        this.logger.error(expr.keyword, "Can't use 'this' outside of a class.");
+        return;
+      }
+
+      this.resolveLocal(expr, expr.keyword);
     },
     visitUnaryExpr: (expr: Unary) => this._resolve(expr.right),
     visitVariableExpr: (expr: Variable) => {

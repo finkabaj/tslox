@@ -19,9 +19,12 @@ const exprs = [
   `Assign: ${token} name,${exprName} value`,
   `Binary: ${exprName} left,${token} op,${exprName} right`,
   `Call: ${exprName} callee,${token} paren,${exprName}[] args`,
+  `Get: ${exprName} object,${token} name`,
   `Grouping: ${exprName} expr`,
   `Literal: ${literal} val`,
   `Logical: ${exprName} left,${token} op,${exprName} right`,
+  `Set: ${exprName} object,${token} name,${exprName} value`,
+  `This: ${token} keyword`,
   `Unary: ${token} op,${exprName} right`,
   `Variable: ${token} name`,
 ];
@@ -30,6 +33,7 @@ const exprImports = `import { ${exprName} } from '@/${exprName[0].toLowerCase() 
 const stmtName = 'Stmt';
 const stmts = [
   `Block: ${stmtName}[] statements`,
+  `Class: ${token} name,Func[] methods`,
   `Expression: ${exprName} expr`,
   `Func: ${token} name,${token}[] params,${stmtName}[] body`,
   `If: ${exprName} condition,${stmtName} thenBranch,${stmtName}|null elseBranch`,

@@ -3,6 +3,7 @@ import { IToken, LiteralVal } from '@/types/token';
 
 export type StmtVisitorMap<R> = {
   visitBlockStmt: (expr: Block) => R;
+  visitClassStmt: (expr: Class) => R;
   visitExpressionStmt: (expr: Expression) => R;
   visitFuncStmt: (expr: Func) => R;
   visitIfStmt: (expr: If) => R;
@@ -27,6 +28,19 @@ export class Block extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visit.visitBlockStmt(this);
+  }
+}
+
+export class Class extends Stmt {
+  constructor(
+    public readonly name: IToken,
+    public readonly methods: Func[]
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visit.visitClassStmt(this);
   }
 }
 
