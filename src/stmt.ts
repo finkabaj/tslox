@@ -1,4 +1,4 @@
-import { Expr } from '@/expr';
+import { Expr, Variable } from '@/expr';
 import { IToken, LiteralVal } from '@/types/token';
 
 export type StmtVisitorMap<R> = {
@@ -34,6 +34,7 @@ export class Block extends Stmt {
 export class Class extends Stmt {
   constructor(
     public readonly name: IToken,
+    public readonly superclass: Variable | null,
     public readonly methods: Func[]
   ) {
     super();

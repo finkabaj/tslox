@@ -7,10 +7,16 @@ import { LoxFunction } from '@/function';
 export class LoxClass implements LoxCallable {
   public readonly name: string;
   private readonly methods: Map<string, LoxFunction>;
+  public readonly superclass: LoxClass | null;
 
-  constructor(name: string, methods: Map<string, LoxFunction>) {
+  constructor(
+    name: string,
+    superclass: LoxClass | null,
+    methods: Map<string, LoxFunction>
+  ) {
     this.name = name;
     this.methods = methods;
+    this.superclass = superclass;
   }
 
   public call(interpreter: Interpreter, args: LiteralVal[]): LiteralVal {
@@ -24,7 +30,15 @@ export class LoxClass implements LoxCallable {
   }
 
   public findMethod(name: string): LoxFunction | undefined {
-    return this.methods.get(name);
+    if (this.methods.has(name)) {
+      return this.methods.get(name);
+    }
+
+    if (this.superclass !== null) {
+      return this.superclass.findMethod(name);
+    }
+
+    return undefined;
   }
 
   public toString(): string {

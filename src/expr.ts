@@ -9,6 +9,7 @@ export type ExprVisitorMap<R> = {
   visitLiteralExpr: (expr: Literal) => R;
   visitLogicalExpr: (expr: Logical) => R;
   visitSetExpr: (expr: Set) => R;
+  visitSuperExpr: (expr: Super) => R;
   visitThisExpr: (expr: This) => R;
   visitUnaryExpr: (expr: Unary) => R;
   visitVariableExpr: (expr: Variable) => R;
@@ -121,6 +122,19 @@ export class Set extends Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visit.visitSetExpr(this);
+  }
+}
+
+export class Super extends Expr {
+  constructor(
+    public readonly keyword: IToken,
+    public readonly method: IToken
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visit.visitSuperExpr(this);
   }
 }
 
